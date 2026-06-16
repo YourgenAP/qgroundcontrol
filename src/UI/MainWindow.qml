@@ -125,7 +125,21 @@ ApplicationWindow {
         planView.visible = false
     }
 
-    function showTool(toolTitle, toolSource, toolIcon) {
+    function showTool(toolTitle, toolSource, toolIcon, windowed = false) {
+        if (windowed) {
+            var component = Qt.createComponent("ToolWindow.qml")
+
+            if (component.status === Component.Ready) {
+                component.createObject(mainWindow, {
+                    toolTitle: toolTitle,
+                    toolSource: toolSource,
+                    toolIcon: toolIcon
+                })
+            } else {
+                console.error(component.errorString())
+            }
+        }
+
         toolDrawer.backIcon     = flyView.visible ? "/qmlimages/PaperPlane.svg" : "/qmlimages/Plan.svg"
         toolDrawer.toolTitle    = toolTitle
         toolDrawer.toolSource   = toolSource
@@ -137,8 +151,8 @@ ApplicationWindow {
         showTool(qsTr("Analyze Tools"), "qrc:/qml/QGroundControl/AnalyzeView/AnalyzeView.qml", "/qmlimages/Analyze.svg")
     }
 
-    function showVehicleConfig() {
-        showTool(qsTr("Vehicle Configuration"), "qrc:/qml/QGroundControl/VehicleSetup/SetupView.qml", "/qmlimages/Gears.svg")
+    function showVehicleConfig(windowed = false) {
+        showTool(qsTr("Vehicle Configuration"), "qrc:/qml/QGroundControl/VehicleSetup/SetupView.qml", "/qmlimages/Gears.svg", windowed)
     }
 
     function showVehicleConfigParametersPage() {
@@ -373,7 +387,7 @@ ApplicationWindow {
                             onClicked: {
                                 if (mainWindow.allowViewSwitch()) {
                                     mainWindow.closeIndicatorDrawer()
-                                    mainWindow.showVehicleConfig()
+                                    mainWindow.showVehicleConfig(true)
                                 }
                             }
                         }
@@ -533,6 +547,12 @@ ApplicationWindow {
                 target:                 toolDrawerLoader.item
                 ignoreUnknownSignals:   true
                 onPopout:               toolDrawer.visible = false
+            }
+
+            onLoaded: {
+                if (item && "mainWindow" in item) {
+                    item.mainWindow = mainWindow
+                }
             }
         }
     }
@@ -786,6 +806,14 @@ ApplicationWindow {
                 visible = false
                 source = ""
             }
+        }
+    }
+
+    Component {
+        id: windowedVehicleConfiguration
+
+        Window{
+
         }
     }
 

@@ -23,6 +23,12 @@ Rectangle {
     color:  qgcPal.window
     z:      QGroundControl.zOrderTopMost
 
+    property var mainWindow
+
+    function allowViewSwitch() {
+        return mainWindow.allowViewSwitch()
+    }
+
     // This need to block click event leakage to underlying map.
     DeadMouseArea {
         anchors.fill: parent
@@ -43,7 +49,7 @@ Rectangle {
     property var    _corePlugin:                    QGroundControl.corePlugin
 
     function showSummaryPanel() {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             _showSummaryPanel()
         }
     }
@@ -64,7 +70,7 @@ Rectangle {
     }
 
     function showPanel(button, qmlSource) {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             button.checked = true
             panelLoader.setSource(qmlSource)
         }
@@ -72,7 +78,7 @@ Rectangle {
 
     function showVehicleComponentPanel(vehicleComponent)
     {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             var autopilotPlugin = QGroundControl.multiVehicleManager.activeVehicle.autopilotPlugin
             var prereq = autopilotPlugin.prerequisiteSetup(vehicleComponent)
             if (prereq !== "") {
@@ -92,7 +98,7 @@ Rectangle {
     }
 
     function showParametersPanel() {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             parametersButton.checked = true
             panelLoader.setSource("qrc:/qml/QGroundControl/VehicleSetup/SetupParameterEditor.qml")
         }

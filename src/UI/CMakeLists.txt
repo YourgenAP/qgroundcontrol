@@ -10,4 +10,5 @@ qt_add_qml_module(MainWindowModule
     QML_FILES
         MainWindow.qml
     NO_PLUGIN
+    QML_FILES ToolWindow.qml
 )
