@@ -104,7 +104,9 @@ Rectangle {
         }
     }
 
-    Component.onCompleted: _showSummaryPanel()
+    Component.onCompleted: {
+        _showSummaryPanel()
+    }
 
     Connections {
         target: QGroundControl.corePlugin

@@ -12,6 +12,8 @@ Window {
     property string toolSource
     property string toolIcon
 
+    property var mainWindow
+
     title: toolTitle
 
     Loader {

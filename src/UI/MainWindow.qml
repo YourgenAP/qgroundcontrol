@@ -131,10 +131,12 @@ ApplicationWindow {
 
             if (component.status === Component.Ready) {
                 component.createObject(mainWindow, {
+                    mainWindow: mainWindow,
                     toolTitle: toolTitle,
                     toolSource: toolSource,
                     toolIcon: toolIcon
                 })
+                return
             } else {
                 console.error(component.errorString())
             }
