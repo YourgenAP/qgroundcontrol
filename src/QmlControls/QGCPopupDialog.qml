@@ -41,12 +41,14 @@ import QGroundControl.ScreenTools
 //      preventClose = true prior to returning from your signal handlers.
 Popup {
     id:                 root
-    width:  mainWindow.width
-    height: mainWindow.height
+    width:  Window.window ? Window.window.width : mainWindow.width
+    height: Window.window ? Window.window.height : mainWindow.height
     parent:             Overlay.overlay
     modal:              true
     focus:              true
     margins:            0
+
+    property var mainApplicationWindow: mainWindow
 
     property string title
     property var    buttons:                Dialog.Ok
@@ -69,8 +71,8 @@ Popup {
     property int    _previousValidationErrorCount: 0
 
     background: QGCMouseArea {
-        width:  mainWindow.width
-        height: mainWindow.height
+        width:  Window.window ? Window.window.width : mainWindow.width
+        height: Window.window ? Window.window.height : mainWindow.height
 
         onClicked: {
             if (closePolicy & Popup.CloseOnPressOutside) {
@@ -99,7 +101,8 @@ Popup {
     }
 
     function _accept() {
-        if (_acceptAllowed && mainWindow.allowViewSwitch(_previousValidationErrorCount)) {
+        var appWin = root.mainApplicationWindow ? root.mainApplicationWindow : mainWindow
+        if (_acceptAllowed && appWin.allowViewSwitch(_previousValidationErrorCount)) {
             accepted()
             if (preventClose) {
                 preventClose = false
@@ -111,7 +114,8 @@ Popup {
 
     function _reject() {
         // Dialogs with cancel button are allowed to close with validation errors
-        if (_rejectAllowed && ((buttons & Dialog.Cancel) || mainWindow.allowViewSwitch(_previousValidationErrorCount))) {
+        var appWin = root.mainApplicationWindow ? root.mainApplicationWindow : mainWindow
+        if (_rejectAllowed && ((buttons & Dialog.Cancel) || appWin.allowViewSwitch(_previousValidationErrorCount))) {
             rejected()
             if (preventClose) {
                 preventClose = false

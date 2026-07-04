@@ -121,10 +121,9 @@ Item {
 
     Component {
         id: editorDialogComponent
-
         ParameterEditorDialog {
-            fact:           _editorDialogFact
-            showRCToParam:  _showRCToParam
+            // Ensure the dialog maps back to the root application instance logic
+            mainApplicationWindow: mainWindow
         }
     }
 
@@ -309,9 +308,15 @@ Item {
             QGCMouseArea {
                 anchors.fill: parent
                 onClicked: mouse => {
-                    _editorDialogFact = fact
-                    editorDialogComponent.createObject(mainWindow).open()
-                }
+                               // Dynamic fallback lookup context path
+                               var currentWindowContext = Window.window ? Window.window.contentItem : mainWindow
+
+                               var dialog = editorDialogComponent.createObject(currentWindowContext, {
+                                   fact: fact, //_editorDialogFact
+                                   showRCToParam: true
+                               })
+                               dialog.open()
+                           }
             }
         }
     }
