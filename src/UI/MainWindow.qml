@@ -149,8 +149,8 @@ ApplicationWindow {
         toolDrawer.visible      = true
     }
 
-    function showAnalyzeTool() {
-        showTool(qsTr("Analyze Tools"), "qrc:/qml/QGroundControl/AnalyzeView/AnalyzeView.qml", "/qmlimages/Analyze.svg")
+    function showAnalyzeTool(windowed = false) {
+        showTool(qsTr("Analyze Tools"), "qrc:/qml/QGroundControl/AnalyzeView/AnalyzeView.qml", "/qmlimages/Analyze.svg", windowed)
     }
 
     function showVehicleConfig(windowed = false) {
@@ -375,7 +375,7 @@ ApplicationWindow {
                             onClicked: {
                                 if (mainWindow.allowViewSwitch()) {
                                     mainWindow.closeIndicatorDrawer()
-                                    mainWindow.showAnalyzeTool()
+                                    mainWindow.showAnalyzeTool(true)
                                 }
                             }
                         }
