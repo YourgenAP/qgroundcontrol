@@ -82,6 +82,81 @@ Rectangle {
             onClicked:          _activeVehicle.closeVehicle()
             visible:            _activeVehicle && _communicationLost
         }
+
+        QGCButton {
+            id:                 pilotMarkerButton
+            text:               qsTr("Pilot Marker")
+
+            property var markerFact: _activeVehicle && _activeVehicle.parameterManager ?
+                                        _activeVehicle.parameterManager.getParameter(-1, "PILOT_MARKER") : null
+
+            backgroundColor:    markerFact && MarkerFact.rawValue === 1 ? "green" : "red"
+            //visible:            _activeVehicle && _communicationLost
+
+            onClicked: {
+                if(markerFact) {
+                    markerFact.rawValue = (markerFact.rawValue === 0) ? 1 : 0
+                }
+            }
+        }
+
+        QGCButton {
+            id:                 loggerButton
+
+            property bool isLogging: false
+            property bool waitingStatus: false
+            property string accumulatedOutput: ""
+
+            //visible:            _activeVehicle && _communicationLost
+
+            text: isLogging ? "Stop logger" : "Ensure logger"
+            primary: isLogging
+
+            MAVLinkConsoleController {
+                id: conController
+
+                // onTextChanged: (text) => {
+                //     if (loggerButton.waitingStatus) {
+                //         loggerButton.accumulatedOutput += text
+
+                //         statusTimer.restart()
+                //     }
+                // }
+            }
+
+            // Timer {
+            //     id: statusTimer
+            //     interval: 300 //ms
+            //     repeat: false
+            //     onTriggered: {
+            //         loggerButton.waitingStatus = false
+            //         mainWindow.showMessageDialog(
+            //             qsTr("Logger status"),
+            //             loggerButton.accumulatedOutput.trim()
+            //         )
+            //         loggerButton.accumulatedOutput = ""
+            //     }
+            // }
+
+            onClicked: {
+                if (!_activeVehicle) return
+
+                if (!isLogging) {
+                    conController.sendCommand("logger stop")
+                    conController.sendCommand("logger -f start")
+
+                    loggerButton.accumulatedOutput = ""
+                    loggerButton.waitingStatus = true
+                    conController.sendCommand("logger status")
+
+                    isLogging = true
+                }
+                else {
+                    conController.sendCommand("logger stop")
+                    isLogging = false
+                }
+            }
+        }
     }
 
     QGCFlickable {
