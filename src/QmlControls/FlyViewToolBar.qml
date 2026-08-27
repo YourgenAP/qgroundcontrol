@@ -87,11 +87,13 @@ Rectangle {
             id:                 pilotMarkerButton
             text:               qsTr("Pilot Marker")
 
-            property var markerFact: _activeVehicle && _activeVehicle.parameterManager ?
+            property var markerFact: _activeVehicle && _activeVehicle.parameterManager &&
+                                     _activeVehicle.parameterManager.parametersReady &&
+                                     _activeVehicle.parameterManager.parameterExists(-1, "PILOT_MARKER") ?
                                         _activeVehicle.parameterManager.getParameter(-1, "PILOT_MARKER") : null
 
-            backgroundColor:    markerFact && MarkerFact.rawValue === 1 ? "green" : "red"
-            //visible:            _activeVehicle && _communicationLost
+            backgroundColor:    markerFact && markerFact.rawValue === 1 ? "green" : "red"
+            visible:            _activeVehicle && !_communicationLost
 
             onClicked: {
                 if(markerFact) {
@@ -107,7 +109,7 @@ Rectangle {
             property bool waitingStatus: false
             property string accumulatedOutput: ""
 
-            //visible:            _activeVehicle && _communicationLost
+            visible:            _activeVehicle && !_communicationLost
 
             text: isLogging ? "Stop logger" : "Ensure logger"
             primary: isLogging
@@ -143,7 +145,7 @@ Rectangle {
 
                 if (!isLogging) {
                     conController.sendCommand("logger stop")
-                    conController.sendCommand("logger -f start")
+                    conController.sendCommand("logger start -f")
 
                     loggerButton.accumulatedOutput = ""
                     loggerButton.waitingStatus = true
