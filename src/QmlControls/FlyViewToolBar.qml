@@ -25,12 +25,137 @@ Rectangle {
     height: ScreenTools.toolbarHeight
     color:  qgcPal.toolbarBackground
 
-    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
-    property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
-    property color  _mainStatusBGColor: qgcPal.brandingPurple
+    property var    _activeVehicle:         QGroundControl.multiVehicleManager.activeVehicle
+    property bool   _communicationLost:     _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
+    property color  _mainStatusBGColor:     qgcPal.brandingPurple
+
+    property bool   setFocus:               true
+
+    property string comboBoxGroupName:      "Flight Testing"
+    property bool   vehicleParamsReady:     _activeVehicle ? _activeVehicle.parameterManager.parametersReady : false
+
+    property int    parameterFactRole:      Qt.UserRole + 1
+    property bool   parameterGroupFound:    false
+    property var    groupFacts:             []
+    property var    groupFactNames:         []
+    property var    selectedFact:           (_flightTestParameter.currentIndex >= 0 && _flightTestParameter.currentIndex < groupFacts.length)
+                                                ? groupFacts[_flightTestParameter.currentIndex]
+                                                : null
+
+    onVehicleParamsReadyChanged:            reloadParameterController()
+    onSelectedFactChanged:                  refreshValueField()
+    Component.onCompleted:                  reloadParameterController()
+
+    Connections {
+        target: QGroundControl.multiVehicleManager
+        function onActiveVehicleChanged(activeVehicle) {_root.reloadParameterController()}
+    }
 
     function dropMainStatusIndicatorTool() {
         mainStatusIndicator.dropMainStatusIndicator();
+    }
+
+    function reloadParameterController() {
+        var vehicle = QGroundControl.multiVehicleManager.activeVehicle
+        var ready   = vehicle ? vehicle.parameterManager.parametersReady : false
+        paramControllerLoader.active = false
+        paramControllerLoader.active = ready
+    }
+
+    function selectParameterGroup(ctrl, groupName) {
+        if (ctrl && ctrl.categories) {
+            for (var catId = 0; catId < ctrl.categories.count; catId++) {
+                var category = ctrl.categories.get(catId)
+                for (var groupId = 0; groupId < category.groups.count; groupId++) {
+                    var group = category.groups.get(groupId)
+                    if (group.name === groupName) {
+                        ctrl.currentCategory = category
+                        ctrl.currentGroup    = group
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    function factAtRow(model, row) {
+        var idx     = model.index(row, 0)
+        var fact    = model.data(idx, parameterFactRole)
+        if (fact && fact.name !== undefined) {
+            return fact
+        }
+        return null
+    }
+
+    function rebuildParameterList() {
+        var ctrl        = paramControllerLoader.item
+        var prevName    = selectedFact ? selectedFact.name : ""
+        var facts       = []
+        var names       = []
+
+        if (ctrl && parameterGroupFound && ctrl.parameters) {
+            var model = ctrl.parameters
+            for (var row = 0; row < model.rowCount; row++){
+                var fact = factAtRow(model, row)
+                if (fact) {
+                    facts.push(fact)
+                    names.push(fact.name)
+                }
+            }
+        }
+
+        groupFacts      = facts
+        groupFactNames  = names
+        _flightTestParameter.currentIndex = 0
+    }
+
+    function refreshValueField() {
+        _parameterValue.text = selectedFact ? selectedFact.valueString : ""
+    }
+
+    Loader {
+        id:         paramControllerLoader
+        active:     false
+
+        sourceComponent: Component {
+            ParameterEditorController {}
+        }
+
+        onLoaded: {
+            _root.parameterGroupFound = _root.selectParameterGroup(item, _root.comboBoxGroupName)
+            _root.rebuildParameterList()
+        }
+
+        onItemChanged: {
+            if (!item) {
+                _root.parameterGroupFound = false
+                _root.rebuildParameterList()
+            }
+        }
+    }
+
+    Connections {
+        target:                 paramControllerLoader.item
+        ignoreUnknownSignals:   true
+        function onParametersChanged() {_root.rebuildParameterList()}
+    }
+    Connections {
+        target:                     paramControllerLoader.item ? paramControllerLoader.item.parameters : null
+        ignoreUnknownSignals:       true
+        function onModelReset()         {Qt.callLater(_root.rebuildParameterList())}
+        function onRowCountChanged()    {Qt.callLater(_root.rebuildParameterList())}
+        function onLayoutChanged()      {Qt.callLater(_root.rebuildParameterList())}
+    }
+
+    Connections {
+        target:                 _root.selectedFact
+        ignoreUnknownSignals:   true
+        function onValueChanged() {
+            if(!_parameterValue.activeFocus) {
+                _root.refreshValueField()
+            }
+        }
     }
 
     QGCPalette { id: qgcPal }
@@ -157,6 +282,47 @@ Rectangle {
                     conController.sendCommand("logger stop")
                     isLogging = false
                 }
+            }
+        }
+
+        QGCComboBox {
+            id:                 _flightTestParameter
+            width:              ScreenTools.defaultFontPixelWidth * 15
+            visible:            _activeVehicle && !_communicationLost
+            focus:              setFocus
+            model:              groupFactNames
+
+            ToolTip.visible:    hovered && selectedFact
+            ToolTip.delay:      300
+            ToolTip.text:       selectedFact ? selectedFact.shortDescription : ""
+        }
+
+        QGCTextField {
+            id:                     _parameterValue
+            width:                  ScreenTools.defaultFontPixelWidth * 5
+            visible:                _activeVehicle && !_communicationLost
+            //text:                   selectedFact ? selectedFact.value : ""
+        }
+
+        QGCButton {
+            id:         sendValueButton
+            visible:    _activeVehicle && !_communicationLost
+            text:       qsTr("Send Value")
+            primary:    true
+
+            onClicked: {
+                if (!selectedFact) {
+                    return
+                }
+                var errorString = selectedFact.validate(_parameterValue.text, false)
+                if (errorString !== "") {
+                    mainWindow.showMessageDialog(qsTr("Invalid value"), error)
+                    _root.refreshValueField()
+                    return
+                }
+
+                selectedFact.value = _parameterValue.text
+                _parameterValue.focus = false
             }
         }
     }
