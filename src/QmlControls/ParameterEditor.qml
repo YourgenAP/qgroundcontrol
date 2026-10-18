@@ -123,7 +123,11 @@ Item {
         id: editorDialogComponent
         ParameterEditorDialog {
             // Ensure the dialog maps back to the root application instance logic
-            mainApplicationWindow: mainWindow
+            mainApplicationWindow:  mainWindow
+
+            anchors.centerIn:       parent
+            width:                  parent.width
+            height:                 parent.height
         }
     }
 
@@ -308,14 +312,16 @@ Item {
             QGCMouseArea {
                 anchors.fill: parent
                 onClicked: mouse => {
-                               // Dynamic fallback lookup context path
-                               var currentWindowContext = Window.window ? Window.window.contentItem : mainWindow
+                                // Dynamic fallback lookup context path
+                                var currentWindowContext = Window.window ? Window.window.contentItem : mainWindow
+                                var hostOverlay = Overlay.overlay
 
-                               var dialog = editorDialogComponent.createObject(currentWindowContext, {
-                                   fact: fact, //_editorDialogFact
-                                   showRCToParam: true
-                               })
-                               dialog.open()
+                                var dialog = editorDialogComponent.createObject(currentWindowContext, {
+                                    fact: fact, //_editorDialogFact
+                                    showRCToParam: true,
+                                    parent: hostOverlay
+                                })
+                                dialog.open()
                            }
             }
         }
