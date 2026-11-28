@@ -35,13 +35,15 @@ import QGroundControl.Controls
 //      preventClose = true prior to returning from your signal handlers.
 Popup {
     id:                 root
-    width:  mainWindow.width
-    height: mainWindow.height
+    width:  Window.window ? Window.window.width : mainWindow.width
+    height: Window.window ? Window.window.height : mainWindow.height
     modal:              true
     focus:              true
     margins:            0
 
     default property alias dialogContent: dialogContentParent.data
+
+    property var mainApplicationWindow: mainWindow
 
     property string title
     property var    buttons:                Dialog.Ok
@@ -68,8 +70,8 @@ Popup {
     property int    _previousValidationErrorCount: 0
 
     background: QGCMouseArea {
-        width:  mainWindow.width
-        height: mainWindow.height
+        width:  Window.window ? Window.window.width : mainWindow.width
+        height: Window.window ? Window.window.height : mainWindow.height
 
         onClicked: {
             if (closePolicy & Popup.CloseOnPressOutside) {
@@ -107,7 +109,8 @@ Popup {
     onButtonsChanged: setupDialogButtons(buttons)
 
     function _accept() {
-        if (_acceptAllowed && (bypassNavigationCheck || mainWindow.allowViewSwitch(_previousValidationErrorCount))) {
+        var appWin = root.mainApplicationWindow ? root.mainApplicationWindow : mainWindow
+        if (_acceptAllowed && (bypassNavigationCheck || appWin.allowViewSwitch(_previousValidationErrorCount))) {
             accepted()
             if (preventClose) {
                 preventClose = false
@@ -119,7 +122,8 @@ Popup {
 
     function _reject() {
         // Dialogs with cancel button are allowed to close with validation errors
-        if (_rejectAllowed && ((buttons & Dialog.Cancel) || bypassNavigationCheck || mainWindow.allowViewSwitch(_previousValidationErrorCount))) {
+        var appWin = root.mainApplicationWindow ? root.mainApplicationWindow : mainWindow
+        if (_rejectAllowed && ((buttons & Dialog.Cancel) || bypassNavigationCheck || appWin.allowViewSwitch(_previousValidationErrorCount))) {
             rejected()
             if (preventClose) {
                 preventClose = false

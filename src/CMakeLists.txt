@@ -22,6 +22,8 @@ qt_add_qml_module(QGroundControlModule
     IMPORTS
         QGC
     NO_PLUGIN
+    QML_FILES MainWindow/ToolWindow.qml
+    QML_FILES MainWindow/ToolWindow.qml
 )
 
 if(IOS)

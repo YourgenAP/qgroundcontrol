@@ -54,7 +54,7 @@ ToolIndicatorPage {
                 onClicked: {
                     if (mainWindow.allowViewSwitch()) {
                         mainWindow.closeIndicatorDrawer()
-                        mainWindow.showAnalyzeTool()
+                        mainWindow.showAnalyzeTool(true)
                     }
                 }
             }
@@ -69,7 +69,8 @@ ToolIndicatorPage {
                 onClicked: {
                     if (mainWindow.allowViewSwitch()) {
                         mainWindow.closeIndicatorDrawer()
-                        mainWindow.showVehicleConfig()
+                        console.log("Calling mainWindow showVehConfig")
+                        mainWindow.showVehicleConfig(true)
                     }
                 }
             }

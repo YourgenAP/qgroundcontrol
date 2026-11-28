@@ -124,8 +124,12 @@ Item {
         id: editorDialogComponent
 
         ParameterEditorDialog {
-            fact:           _editorDialogFact
-            showRCToParam:  _showRCToParam
+            // Ensure the dialog maps back to the root application instance logic
+            mainApplicationWindow:  mainWindow
+
+            anchors.centerIn:       parent
+            width:                  parent.width
+            height:                 parent.height
         }
     }
 
@@ -445,8 +449,16 @@ Item {
                 anchors.fill: parent
                 visible:      column !== 0
                 onClicked: mouse => {
-                    _editorDialogFact = fact
-                    editorDialogFactory.open()
+                    var currentWindowContext = Window.window ? Window.window.contentItem : MainWindow
+
+                    var hostOverlay = Overlay.overlay
+
+                    var dialog = editorDialogComponent.createObject(currentWindowContext, {
+                        fact: fact, //_editorDialogFact
+                        showRCToParam: true,
+                        parent: hostOverlay
+                    })
+                    dialog.open()
                 }
             }
         }

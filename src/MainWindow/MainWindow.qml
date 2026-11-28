@@ -145,7 +145,26 @@ ApplicationWindow {
         toolDrawer.visible = false
     }
 
-    function showTool(toolTitle, toolSource, toolIcon) {
+    function showTool(toolTitle, toolSource, toolIcon, windowed = false) {
+        console.log("showTool", windowed)
+        if (windowed) {
+            var component = Qt.createComponent("MainWindow/ToolWindow.qml")
+
+            if (component.status === Component.Ready) {
+                console.log("showTool componentReady")
+                component.createObject(mainWindow, {
+                    mainWindow: mainWindow,
+                    toolTitle: toolTitle,
+                    toolSource: toolSource,
+                    toolIcon: toolIcon
+                })
+                console.log("showTool here we go out")
+                return
+            } else {
+                console.error(component.errorString())
+            }
+        }
+
         toolDrawer.backIcon     = flyView.visible ? "/qmlimages/PaperPlane.svg" : "/qmlimages/Plan.svg"
         toolDrawer.toolTitle    = toolTitle
         toolDrawer.toolSource   = toolSource
@@ -153,12 +172,13 @@ ApplicationWindow {
         toolDrawer.visible      = true
     }
 
-    function showAnalyzeTool() {
-        showTool(qsTr("Analyze Tools"), "qrc:/qml/QGroundControl/AnalyzeView/AnalyzeView.qml", "/qmlimages/Analyze.svg")
+    function showAnalyzeTool(windowed = false) {
+        showTool(qsTr("Analyze Tools"), "qrc:/qml/QGroundControl/AnalyzeView/AnalyzeView.qml", "/qmlimages/Analyze.svg", windowed)
     }
 
-    function showVehicleConfig() {
-        showTool(qsTr("Vehicle Configuration"), "qrc:/qml/QGroundControl/VehicleSetup/VehicleConfigView.qml", "/qmlimages/Gears.svg")
+    function showVehicleConfig(windowed = false) {
+        console.log("showVehicleConfig", windowed)
+        showTool(qsTr("Vehicle Configuration"), "qrc:/qml/QGroundControl/VehicleSetup/VehicleConfigView.qml", "/qmlimages/Gears.svg", windowed)
     }
 
     function showVehicleConfigParametersPage() {
@@ -469,6 +489,12 @@ ApplicationWindow {
             anchors.right:  parent.right
             anchors.top:    toolDrawerToolbar.bottom
             anchors.bottom: parent.bottom
+
+            onLoaded: {
+                if (item && "mainWindow" in item) {
+                    item.mainWindow = mainWindow
+                }
+            }
         }
     }
 

@@ -40,6 +40,12 @@ Rectangle {
     property int    _expandedRevision:       0
     property string _searchQuery:            ""
 
+    property var mainWindow
+
+    function allowViewSwitch() {
+        return mainWindow.allowViewSwitch()
+    }
+
     function _setExpanded(compIndex, value) {
         _expandedComponents[compIndex] = value
         _expandedRevision++
@@ -144,7 +150,7 @@ Rectangle {
     }
 
     function showSummaryPanel() {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             _showSummaryPanel()
         }
     }
@@ -167,7 +173,7 @@ Rectangle {
     }
 
     function showPanel(specialName, qmlSource) {
-        if (mainWindow.allowViewSwitch()) {
+        if (allowViewSwitch()) {
             _selectedSpecial = specialName
             _selectedComponentIndex = -1
             _selectedSectionIndex = -1
@@ -220,7 +226,7 @@ Rectangle {
     }
 
     function showVehicleComponentPanel(vehicleComponent) {
-        if (!mainWindow.allowViewSwitch()) return
+        if (!allowViewSwitch()) return
         if (!_fullParameterVehicleAvailable) return
 
         var components = _activeVehicle.autopilotPlugin.vehicleComponents
@@ -232,7 +238,9 @@ Rectangle {
         }
     }
 
-    Component.onCompleted: _showSummaryPanel()
+    Component.onCompleted: {
+        _showSummaryPanel()
+    }
 
     Connections {
         target: QGroundControl.corePlugin
